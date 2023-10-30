@@ -46,10 +46,14 @@ type Action =
       type: 'alinhar-valores';
     };
 
+function arredondarValor({value, min, step}: State){
+  return min.plus(value.minus(min).minus(value.minus(min).mod(step)));
+}
+
 function reducer(state: State, action: Action) {
   switch (action.type) {
     case 'valor-anterior': {
-      const newValue = state.value.minus(state.step || 1);
+      const newValue = arredondarValor(state).minus(state.step || 1);
       if(newValue.lessThan(state.min)) return state;
       action.payload.onChange && action.payload.onChange(Number(newValue));
       return {
@@ -60,7 +64,7 @@ function reducer(state: State, action: Action) {
     }
 
     case 'valor-posterior': {
-      const newValue = state.value.plus(state.step || 1);
+      const newValue = arredondarValor(state).plus(state.step || 1);
       if(newValue.greaterThan(state.max)) return state;
       action.payload.onChange && action.payload.onChange(Number(newValue));
       return {
@@ -113,14 +117,14 @@ export default function InputSeletor(props: InputSeletorProps) {
 
   return (
     <div className={`flex flex-col items-center justify-center ${props.className ?? ''}`}>
-      {props.labelUp && <span>{props.labelUp}</span>}
+      {props.labelUp && <span className='text-lg'>{props.labelUp}</span>}
       <button
         className="flex items-center justify-center w-full h-6 after:absolute after:w-2 after:h-2 after:border-gray-900 after:border-t-2 after:border-l-2 after:rotate-45 after:translate-y-1"
         onClick={() =>
           dispatch({ type: 'valor-posterior', payload: { onChange: props.onChange } })
         }
       />
-      <div className="relative w-24 h-10 overflow-hidden text-2xl">
+      <div className="relative w-32 h-10 overflow-hidden text-2xl">
         <div className={`absolute w-full h-10 flex ${state.updatingClass}`}>
           <div className="flex items-center justify-center w-full min-h-[2.5rem]">
             {formatter(state.prevValue)}
@@ -136,7 +140,7 @@ export default function InputSeletor(props: InputSeletorProps) {
           dispatch({ type: 'valor-anterior', payload: { onChange: props.onChange } })
         }
       />
-      {props.labelDown && <span>{props.labelDown}</span>}
+      {props.labelDown && <span className='text-lg'>{props.labelDown}</span>}
     </div>
   );
 }
